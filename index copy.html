@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colección Pro - Vanilla JS</title>
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           VARIABLES & TEMA
+           ========================================= */
+        :root {
+            --bg-body: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-main: #2d3436;
+            --text-sec: #636e72;
+            --accent: #6c5ce7; /* Morado moderno */
+            --accent-hover: #5649c0;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --nav-text: #2d3436;
+            --border: #dfe6e9;
+            --shadow: 0 8px 30px rgba(0,0,0,0.08);
+            --font-title: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+            --modal-overlay: rgba(0,0,0,0.6);
+        }
+
+        body.dark-mode {
+            --bg-body: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --text-main: #dfe6e9;
+            --text-sec: #b2bec3;
+            --accent: #a29bfe;
+            --accent-hover: #8e84f5;
+            --nav-bg: rgba(30, 30, 30, 0.95);
+            --nav-text: #ffffff;
+            --border: #444;
+            --shadow: 0 8px 30px rgba(0,0,0,0.4);
+            --modal-overlay: rgba(0,0,0,0.8);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.4s, color 0.4s;
+        }
+
+        h1, h2, h3, h4 { font-family: var(--font-title); font-weight: 700; }
+        
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* =========================================
+           NAVEGACIÓN
+           ========================================= */
+        nav.main-nav {
+            background-color: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav button {
+            background: transparent;
+            color: var(--nav-text);
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            opacity: 0.6;
+            transition: all 0.3s;
+        }
+
+        nav button:hover, nav button.active-tab { opacity: 1; transform: translateY(-1px); }
+        
+        nav button::after {
+            content: ''; position: absolute; bottom: 0; left: 50%;
+            width: 0; height: 2px; background: var(--accent);
+            transition: width 0.3s; transform: translateX(-50%);
+        }
+        nav button.active-tab::after { width: 60%; }
+
+        .theme-toggle {
+            position: absolute; right: 20px;
+            font-size: 1.2rem; cursor: pointer;
+        }
+
+        /* =========================================
+           CONTENEDOR
+           ========================================= */
+        #display-area {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+
+        .project-section {
+            display: none;
+            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .project-section.active-section { display: block; }
+
+        /* =========================================
+           1. PORTAFOLIO MEJORADO
+           ========================================= */
+        /* Perfil */
+        .profile-container {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 60px;
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        
+        .profile-img {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--bg-body);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .profile-info h1 { font-size: 2.5rem; margin-bottom: 10px; color: var(--text-main); }
+        .profile-role { color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 20px; display: block; }
+        .profile-bio { color: var(--text-sec); line-height: 1.7; margin-bottom: 25px; max-width: 600px; }
+        
+        .social-links { display: flex; gap: 15px; }
+        .social-btn {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: var(--bg-body);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 1.2rem;
+            transition: 0.3s;
+        }
+        .social-btn:hover { background: var(--accent); color: white; transform: translateY(-3px); }
+
+        /* Galería */
+        .filter-controls { display: flex; justify-content: center; gap: 15px; margin: 40px 0; }
+        .filter-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-sec);
+            border-radius: 30px;
+            cursor: pointer; transition: 0.3s;
+        }
+        .filter-btn.active, .filter-btn:hover { background: var(--text-main); color: var(--bg-card); border-color: var(--text-main); }
+
+        .gallery {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px;
+            margin-bottom: 60px;
+        }
+        .card {
+            background: var(--bg-card); border-radius: 15px; overflow: hidden;
+            box-shadow: var(--shadow); border: 1px solid var(--border);
+            transition: transform 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card-img { height: 200px; background-size: cover; background-position: center; }
+        .card-body { padding: 20px; }
+
+        /* Formulario Contacto */
+        .contact-section {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            padding: 40px; border-radius: 20px; color: white;
+            text-align: center; max-width: 700px; margin: 0 auto;
+        }
+        .contact-section h2 { margin-bottom: 20px; color: white; }
+        .contact-form { display: grid; gap: 15px; text-align: left; }
+        .contact-form input, .contact-form textarea {
+            padding: 15px; border-radius: 8px; border: none;
+            width: 100%; font-family: var(--font-body);
+        }
+        .contact-form button {
+            background: #2d3436; color: white; padding: 15px; border: none;
+            border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;
+            transition: 0.3s;
+        }
+        .contact-form button:hover { transform: scale(1.02); }
+
+        /* =========================================
+           2. LANDING PAGE MEJORADA
+           ========================================= */
+        /* Hero */
+        .hero-section {
+            text-align: center; padding: 80px 20px;
+            background: var(--bg-card); border-radius: 20px;
+            box-shadow: var(--shadow); margin-bottom: 60px;
+            border: 1px solid var(--border);
+        }
+        .hero-section h1 { font-size: 3.5rem; margin-bottom: 20px; line-height: 1.1; }
+        .timer { font-size: 3rem; font-weight: 700; color: var(--accent); margin: 30px 0; font-family: monospace; }
+        
+        .landing-cta-form {
+            display: flex; gap: 10px; max-width: 500px; margin: 0 auto;
+        }
+        .landing-cta-form input { flex: 1; padding: 15px; border: 1px solid var(--border); border-radius: 50px; }
+        .landing-cta-form button { padding: 15px 30px; border-radius: 50px; background: var(--accent); color: white; border: none; font-weight: 600; cursor: pointer; }
+
+        /* Features */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 60px;
+        }
+        .feature-card {
+            background: var(--bg-card); padding: 30px; border-radius: 15px;
+            border: 1px solid var(--border); text-align: center;
+        }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 20px; display: block; }
+        
+        /* Testimonios */
+        .testimonials { background: var(--bg-card); padding: 40px; border-radius: 20px; }
+        .testimonial-card {
+            border-left: 4px solid var(--accent); padding-left: 20px; margin: 20px 0;
+            font-style: italic; color: var(--text-sec);
+        }
+        .testimonial-author { font-weight: bold; color: var(--text-main); margin-top: 10px; display: block; font-style: normal; }
+
+        /* =========================================
+           3. BLOG CON SIDEBAR
+           ========================================= */
+        .blog-header-lg {
+            text-align: center; margin-bottom: 50px; padding: 40px;
+            background: var(--bg-card); border-radius: 20px; border: 1px solid var(--border);
+        }
+        
+        .blog-layout {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 40px;
+        }
+        @media (max-width: 768px) { .blog-layout { grid-template-columns: 1fr; } }
+
+        .blog-post {
+            background: var(--bg-card); border-radius: 15px; overflow: hidden;
+            margin-bottom: 40px; border: 1px solid var(--border);
+        }
+        .post-img { width: 100%; height: 300px; object-fit: cover; }
+        .post-content { padding: 30px; }
+        .post-meta { font-size: 0.85rem; color: var(--accent); text-transform: uppercase; font-weight: bold; margin-bottom: 10px; display: block; }
+        .read-time-badge { background: var(--bg-body); padding: 4px 10px; border-radius: 4px; color: var(--text-sec); font-size: 0.75rem; margin-left: 10px; }
+
+        /* Sidebar */
+        .blog-sidebar { position: sticky; top: 20px; }
+        .sidebar-widget {
+            background: var(--bg-card); padding: 25px; border-radius: 15px;
+            margin-bottom: 30px; border: 1px solid var(--border);
+        }
+        .sidebar-widget h3 { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid var(--bg-body); padding-bottom: 10px; }
+        
+        .mini-post { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
+        .mini-thumb { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .mini-info h4 { font-size: 0.95rem; font-family: var(--font-body); margin-bottom: 5px; }
+        .mini-info span { font-size: 0.8rem; color: var(--text-sec); }
+
+        /* =========================================
+           4. TIENDA CON MODAL
+           ========================================= */
+        .store-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-card); padding: 30px; border-radius: 20px;
+            margin-bottom: 40px; border: 1px solid var(--border);
+        }
+        .cart-wrapper { position: relative; cursor: pointer; }
+        .cart-badge {
+            position: absolute; top: -10px; right: -10px;
+            background: var(--accent); color: white;
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: bold;
+        }
+
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
+        .product-card {
+            background: var(--bg-card); border-radius: 15px; padding: 20px;
+            text-align: center; border: 1px solid var(--border); transition: 0.3s;
+        }
+        .product-card:hover { box-shadow: var(--shadow); }
+        .prod-img-lg { height: 220px; width: 100%; object-fit: cover; border-radius: 10px; margin-bottom: 15px; }
+        .price-tag { display: block; font-size: 1.2rem; color: var(--accent); font-weight: bold; margin: 10px 0; }
+        .add-cart-btn {
+            width: 100%; padding: 12px; background: var(--text-main); color: var(--bg-card);
+            border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .add-cart-btn:hover { background: var(--accent); }
+
+        /* MODAL */
+        .modal {
+            display: none; position: fixed; z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: var(--modal-overlay);
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal.show { display: flex; animation: fadeModal 0.3s; }
+        @keyframes fadeModal { from {opacity: 0;} to {opacity: 1;} }
+
+        .modal-content {
+            background-color: var(--bg-card); padding: 40px; border-radius: 20px;
+            text-align: center; max-width: 400px; width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid var(--border);
+        }
+        .modal-icon { font-size: 4rem; margin-bottom: 20px; display: block; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 25px; }
+        .btn-outline { padding: 10px 20px; border: 2px solid var(--border); background: transparent; color: var(--text-main); border-radius: 8px; cursor: pointer; }
+        .btn-fill { padding: 10px 20px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <nav class="main-nav">
+        <button onclick="switchTab('portfolio', this)" class="active-tab">Portafolio</button>
+        <button onclick="switchTab('landing', this)">Lanzamiento</button>
+        <button onclick="switchTab('blog', this)">Blog</button>
+        <button onclick="switchTab('store', this)">Tienda</button>
+        <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar Tema">🌓</div>
+    </nav>
+
+    <div id="display-area">
+
+        <!-- =============================================
+             1. PORTAFOLIO
+             ============================================= -->
+        <section id="portfolio" class="project-section active-section">
+            
+            <!-- Perfil Profesional -->
+            <div class="profile-container">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="Dev" class="profile-img">
+                <div class="profile-info">
+                    <span class="profile-role">Senior Full Stack Developer</span>
+                    <h1>Alex Dev</h1>
+                    <p class="profile-bio">
+                        Especialista en crear experiencias web minimalistas y de alto rendimiento. Con más de 5 años de experiencia transformando ideas complejas en código limpio y mantenible. Apasionado por la UI/UX y la arquitectura de software escalable.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-btn" title="GitHub">GH</a>
+                        <a href="#" class="social-btn" title="LinkedIn">IN</a>
+                        <a href="#" class="social-btn" title="Twitter">X</a>
+                        <a href="#" class="social-btn" title="Portfolio">🌐</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Galería -->
+            <h2 style="text-align: center; margin-bottom: 20px;">Proyectos Destacados</h2>
+            <div class="filter-controls">
+                <button class="filter-btn active" onclick="filterProjects('all', this)">Todos</button>
+                <button class="filter-btn" onclick="filterProjects('web', this)">Web</button>
+                <button class="filter-btn" onclick="filterProjects('mobile', this)">Mobile</button>
+            </div>
+
+            <div class="gallery">
+                <div class="card" data-cat="web">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1481487484168-9b930d5b7d9f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="card-body"><h3>SaaS Dashboard</h3><p>React, Node.js</p></div>
+                </div>
+                <div class="card" data-cat="mobile">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="card-body"><h3>Fitness App</h3><p>Flutter, Firebase</p></div>
+                </div>
+                <div class="card" data-cat="web">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="card-body"><h3>E-Commerce</h3><p>Shopify, Liquid</p></div>
+                </div>
+            </div>
+
+            <!-- Contacto -->
+            <div class="contact-section">
+                <h2>¿Trabajamos juntos?</h2>
+                <p style="margin-bottom: 30px;">Estoy disponible para proyectos freelance.</p>
+                <form class="contact-form" onsubmit="event.preventDefault(); alert('Mensaje enviado (Simulado)');">
+                    <input type="text" placeholder="Tu Nombre" required>
+                    <input type="email" placeholder="Tu Email" required>
+                    <textarea rows="4" placeholder="Cuéntame sobre tu proyecto..."></textarea>
+                    <button type="submit">Enviar Mensaje</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- =============================================
+             2. LANZAMIENTO
+             ============================================= -->
+        <section id="landing" class="project-section">
+            <div class="hero-section">
+                <span style="color: var(--accent); font-weight: bold; letter-spacing: 2px;">BETA CERRADA</span>
+                <h1>Productividad sin caos.</h1>
+                <p style="max-width: 600px; margin: 0 auto; color: var(--text-sec);">
+                    La primera herramienta de gestión diseñada para trabajar como piensa tu cerebro. No más listas interminables.
+                </p>
+                <div id="countdown" class="timer">00:00:00</div>
+                <form class="landing-cta-form" onsubmit="event.preventDefault(); alert('¡Gracias por unirte!');">
+                    <input type="email" placeholder="Ingresa tu correo..." required>
+                    <button type="submit">Notificarme</button>
+                </form>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🚀</span>
+                    <h3>Sincronización Total</h3>
+                    <p style="color: var(--text-sec); font-size: 0.9rem;">Tus datos disponibles en móvil, tablet y escritorio en tiempo real.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Privacidad Primero</h3>
+                    <p style="color: var(--text-sec); font-size: 0.9rem;">Encriptación de extremo a extremo. Tus datos son solo tuyos.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🧠</span>
+                    <h3>Modo Focus</h3>
+                    <p style="color: var(--text-sec); font-size: 0.9rem;">Bloquea distracciones automáticamente cuando necesitas trabajar.</p>
+                </div>
+            </div>
+
+            <div class="testimonials">
+                <h2 style="text-align: center;">Lo que dicen los primeros usuarios</h2>
+                <div class="testimonial-card">
+                    "Literalmente cambió mi forma de organizar la semana. Ya no siento ansiedad los lunes por la mañana."
+                    <span class="testimonial-author">- Sarah J., Diseñadora UX</span>
+                </div>
+                <div class="testimonial-card">
+                    "La interfaz es tan limpia que da gusto usarla. Es rápida, simple y potente."
+                    <span class="testimonial-author">- Mike T., Emprendedor</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =============================================
+             3. BLOG
+             ============================================= -->
+        <section id="blog" class="project-section">
+            <div class="blog-header-lg">
+                <h1>Insight Magazine</h1>
+                <p>Curando contenido sobre tecnología y estilo de vida digital.</p>
+            </div>
+
+            <div class="blog-layout">
+                <!-- Columna Principal -->
+                <div class="blog-main">
+                    <article class="blog-post">
+                        <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Code" class="post-img">
+                        <div class="post-content">
+                            <span class="post-meta">Desarrollo • 2 horas atrás</span>
+                            <h2>El Futuro del Desarrollo Web es "Vanilla"</h2>
+                            <p style="color: var(--text-sec); margin-bottom: 20px; line-height: 1.6;" class="article-text">
+                                Estamos viendo un retorno a los fundamentos. Con las nuevas capacidades de los navegadores, la necesidad de frameworks pesados para tareas simples está disminuyendo. El rendimiento nativo es imbatible y la mantenibilidad a largo plazo mejora drásticamente cuando reducimos dependencias.
+                            </p>
+                            <a href="#" style="color: var(--accent); font-weight: bold; text-decoration: none;">Leer completo →</a>
+                        </div>
+                    </article>
+
+                    <article class="blog-post">
+                        <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Tech" class="post-img">
+                        <div class="post-content">
+                            <span class="post-meta">Hardware • 1 día atrás</span>
+                            <h2>¿Necesitas realmente ese upgrade?</h2>
+                            <p style="color: var(--text-sec); margin-bottom: 20px; line-height: 1.6;" class="article-text">
+                                El ciclo de consumo tecnológico nos empuja a renovar equipos cada año, pero la sostenibilidad digital sugiere optimizar lo que ya tenemos. Analizamos cómo extender la vida útil de tus dispositivos.
+                            </p>
+                            <a href="#" style="color: var(--accent); font-weight: bold; text-decoration: none;">Leer completo →</a>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- Sidebar Lateral -->
+                <aside class="blog-sidebar">
+                    <div class="sidebar-widget">
+                        <h3>Trending Topics</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                            <span style="background: var(--bg-body); padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">#JavaScript</span>
+                            <span style="background: var(--bg-body); padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">#Minimalismo</span>
+                            <span style="background: var(--bg-body); padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">#RemoteWork</span>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-widget">
+                        <h3>Últimas Noticias</h3>
+                        <div class="mini-post">
+                            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=60" class="mini-thumb">
+                            <div class="mini-info">
+                                <h4>La IA en 2024</h4>
+                                <span>Hace 30 min</span>
+                            </div>
+                        </div>
+                        <div class="mini-post">
+                            <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=60" class="mini-thumb">
+                            <div class="mini-info">
+                                <h4>Ciberseguridad</h4>
+                                <span>Hace 4 horas</span>
+                            </div>
+                        </div>
+                        <div class="mini-post">
+                            <img src="https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=60" class="mini-thumb">
+                            <div class="mini-info">
+                                <h4>Diseño Ético</h4>
+                                <span>Ayer</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- =============================================
+             4. TIENDA
+             ============================================= -->
+        <section id="store" class="project-section">
+            <div class="store-header">
+                <div>
+                    <h2>Urban Boutique</h2>
+                    <p style="color: var(--text-sec);">Edición Limitada Verano 2024</p>
+                </div>
+                <div class="cart-wrapper">
+                    🛒 <span id="cart-count" class="cart-badge">0</span>
+                </div>
+            </div>
+
+            <div class="product-grid">
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="prod-img-lg">
+                    <h3>Sneaker Flow</h3>
+                    <span class="price-tag">$129.00</span>
+                    <button class="add-cart-btn" onclick="openModal('Sneaker Flow')">Agregar al Carrito</button>
+                </div>
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="prod-img-lg">
+                    <h3>Camiseta Basic</h3>
+                    <span class="price-tag">$35.00</span>
+                    <button class="add-cart-btn" onclick="openModal('Camiseta Basic')">Agregar al Carrito</button>
+                </div>
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="prod-img-lg">
+                    <h3>Camisa Oxford</h3>
+                    <span class="price-tag">$59.00</span>
+                    <button class="add-cart-btn" onclick="openModal('Camisa Oxford')">Agregar al Carrito</button>
+                </div>
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" class="prod-img-lg">
+                    <h3>Bolso Canvas</h3>
+                    <span class="price-tag">$85.00</span>
+                    <button class="add-cart-btn" onclick="openModal('Bolso Canvas')">Agregar al Carrito</button>
+                </div>
+            </div>
+            
+            <!-- MODAL CARRITO -->
+            <div id="cart-modal" class="modal">
+                <div class="modal-content">
+                    <span class="modal-icon">🛍️</span>
+                    <h3>¡Excelente elección!</h3>
+                    <p style="color: var(--text-sec); margin-top: 10px;">Has agregado <strong id="modal-product-name">Producto</strong> a tu carrito.</p>
+                    <div class="modal-actions">
+                        <button class="btn-outline" onclick="closeModal()">Seguir Comprando</button>
+                        <button class="btn-fill" onclick="closeModal(); alert('Ir al checkout...');">Pagar Ahora</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // --- 0. TEMA ---
+        function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+
+        // --- 1. NAVEGACIÓN ---
+        function switchTab(sectionId, btnElement) {
+            document.querySelectorAll('.project-section').forEach(s => s.classList.remove('active-section'));
+            document.getElementById(sectionId).classList.add('active-section');
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab'));
+            btnElement.classList.add('active-tab');
+        }
+
+        // --- 2. PORTAFOLIO ---
+        function filterProjects(cat, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.card').forEach(card => {
+                card.style.display = (cat === 'all' || card.dataset.cat === cat) ? 'block' : 'none';
+            });
+        }
+
+        // --- 3. LANDING TIMER ---
+        setInterval(() => {
+            const now = new Date();
+            // Simular cuenta atrás constante
+            const hours = 23 - now.getHours();
+            const mins = 59 - now.getMinutes();
+            const secs = 59 - now.getSeconds();
+            document.getElementById('countdown').innerText = 
+                `${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        }, 1000);
+
+        // --- 4. TIENDA MODAL ---
+        let cartCount = 0;
+        const modal = document.getElementById('cart-modal');
+        const modalProdName = document.getElementById('modal-product-name');
+
+        function openModal(prodName) {
+            cartCount++;
+            document.getElementById('cart-count').innerText = cartCount;
+            modalProdName.innerText = prodName;
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        // Cerrar modal si se hace clic fuera
+        window.onclick = function(event) {
+            if (event.target == modal) closeModal();
+        }
+    </script>
+</body>
+</html>
