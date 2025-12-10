@@ -6,7 +6,7 @@ Una colección modular de interfaces web profesionales construidas en un solo ar
 
 Puedes ver el proyecto funcionando aquí:
 
-🔗 [Enlace a tu GitHub Page] (Reemplaza esto con tu URL, ej: https://www.google.com/search?q=https://usuario.github.io/mi-portafolio/)
+🔗 [Enlace a tu GitHub Page] (https://toulouse817.github.io/hub/)
 
 📂 Módulos Incluidos
 
@@ -106,7 +106,7 @@ Este proyecto no requiere instalación de dependencias (Node.js, NPM, etc.).
 
 Clonar el repositorio:
 
-git clone [https://github.com/tu-usuario/hub-proyectos-web.git](https://github.com/tu-usuario/hub-proyectos-web.git)
+git clone [https://github.com/toulouse817/hub.git](https://github.com/toulouse817/hub.git)
 
 
 Ejecutar:
@@ -124,4 +124,4 @@ Fuentes: Google Fonts (Playfair Display & Poppins).
 
 Este proyecto está bajo la Licencia MIT - eres libre de usarlo y modificarlo para tus propios fines personales o comerciales.
 
-Hecho con ❤️ por [Tu Nombre]
+Hecho con ❤️ por [Gabriel Ramírez]
